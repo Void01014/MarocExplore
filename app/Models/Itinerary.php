@@ -11,4 +11,5 @@ class Itinerary extends Model
     use HasFactory;
 
     protected $fillable = ['user_id', 'category_id', 'title', 'duration', 'image'];
+
 }
