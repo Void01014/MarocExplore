@@ -47,6 +47,16 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+    public function itineraries()
+    {
+        return $this->hasMany(Itinerary::class);
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *

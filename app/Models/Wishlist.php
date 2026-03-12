@@ -5,12 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Destination extends Model
+class Wishlist extends Model
 {
-    /** @use HasFactory<\Database\Factories\DestinationFactory> */
+    /** @use HasFactory<\Database\Factories\WishlistFactory> */
     use HasFactory;
 
-    protected $fillable = ['itinerary_id', 'name', 'lodging', 'places', 'activities', 'food'];
+    public $fillable = ['user_id', 'itinerary_id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function itinerary()
     {

@@ -12,4 +12,23 @@ class Itinerary extends Model
 
     protected $fillable = ['user_id', 'category_id', 'title', 'duration', 'image'];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function destinations()
+    {
+        return $this->hasMany(Destination::class);
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
 }
