@@ -23,7 +23,7 @@ class ItineraryController extends Controller
             'duration' => ['required', 'integer'],
             'image' => ['required', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
-            'destinations' => ['required', 'array', 'min:2'], // project requires at least 2
+            'destinations' => ['required', 'array', 'min:2'],
             'destinations.*.name' => ['required', 'string'],
             'destinations.*.lodging' => ['nullable', 'string'],
             'destinations.*.places' => ['nullable', 'array'],
