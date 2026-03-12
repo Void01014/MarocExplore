@@ -15,6 +15,26 @@ class AuthController extends Controller
      * @return void
      */
 
+    /**
+     * @OA\Post(
+     *      path="auth/register",
+     *      tags={"Auth"},
+     *      summary="Register a new user",
+     *      @OA\RequestBody(
+     *          @OA\JsonContent(
+     *                          required={"name", "email", "password"},
+     *                          @OA\Proprety 
+     *                           )
+     *
+     *                               
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="User Registered",
+     *       ),
+     *     )
+     */
+
     public function register(Request $request)
     {
         $rules = [

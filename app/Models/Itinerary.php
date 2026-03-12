@@ -31,4 +31,24 @@ class Itinerary extends Model
     {
         return $this->hasMany(Wishlist::class);
     }
+
+    ///////////////////////////////////////
+
+    public function scopeFilterBytitle($query, $title){
+        if($title){
+            return $query->where('title', 'LIKE', "%{$title}%");
+        }
+    }
+
+    public function scopeFilterByCategory($query, $category){
+        if($category){
+            return $query->whereRelation('category', 'name', $category);
+        }
+    }
+
+    public function scopeFilterByDuration($query, $duration){
+        if($duration){
+            return $query->where('duration', $duration);
+        }
+    }
 }

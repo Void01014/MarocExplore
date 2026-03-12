@@ -19,6 +19,7 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:api')->prefix('itineraries')->group(function(){
     Route::get('', [ItineraryController::class, 'index']);
     Route::post('', [ItineraryController::class, 'create']);
+    Route::get('wishlist', [ItineraryController::class, 'wishlist']);
     Route::get('{id}', [ItineraryController::class, 'show']);
     Route::put('{id}', [ItineraryController::class, 'update']);
     Route::delete('{id}', [ItineraryController::class, 'destroy']);

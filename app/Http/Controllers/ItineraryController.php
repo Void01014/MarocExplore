@@ -11,9 +11,22 @@ use Illuminate\Support\Facades\Auth;
 class ItineraryController extends Controller
 {
 
-    public function index()
+    /**
+     * @OA\Get
+     */
+
+    public function index(Request $request)
     {
-        return response()->json(Itinerary::with('destinations')->get());
+        $search = $request->query('search');
+        $category = $request->query('category');
+        $duration = $request->query('duration');
+
+        $itineraries = Itinerary::with('destinations')
+            ->with('category:id,name')->filterByTitle($search)
+            ->filterByCategory($category)
+            ->filterByDuration($duration)->get();
+
+        return response()->json($itineraries);
     }
 
     public function create(Request $request)
@@ -103,6 +116,15 @@ class ItineraryController extends Controller
         $itinerary->delete();
 
         return response()->json(null, 204);
+    }
+
+    public function wishlist()
+    {
+        $wishlist = Wishlist::where('user_id', Auth::id())
+            ->with('itinerary.destinations')
+            ->get();
+
+        return response()->json($wishlist);
     }
 
     public function addToWishlist($id)
