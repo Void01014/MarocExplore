@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Destination;
 use App\Models\Itinerary;
+use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -126,5 +127,24 @@ class ItineraryController extends Controller
         ]);
 
         return response()->json(['message' => 'Added to wishlist'], 201);
+    }
+
+    public function removeFromWishlist($id)
+    {
+        $itinerary = Itinerary::find($id);
+
+        if (!$itinerary) {
+            return response()->json(['message' => 'Itinerary not found'], 404);
+        }
+
+        $delete = Wishlist::where('user_id', Auth::id())
+            ->where('itinerary_id', $id)
+            ->delete();
+
+        if (!$delete) {
+            return response()->json(['message' => 'Not in Wishlist'], 404);
+        }
+
+        return response()->json(['message' => 'Removed From Wishlist'], 200);
     }
 }

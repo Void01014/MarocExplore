@@ -21,6 +21,7 @@ Route::middleware('auth:api')->prefix('itineraries')->group(function(){
     Route::post('', [ItineraryController::class, 'create']);
     Route::get('{id}', [ItineraryController::class, 'show']);
     Route::put('{id}', [ItineraryController::class, 'update']);
-    Route::delete('{id}', [ItineraryController::class, 'delete']);
+    Route::delete('{id}', [ItineraryController::class, 'destroy']);
     Route::post('{id}/wishlist', [ItineraryController::class, 'addToWishlist']);
+    Route::delete('{id}/wishlist', [ItineraryController::class, 'removeFromWishlist']);
 });
