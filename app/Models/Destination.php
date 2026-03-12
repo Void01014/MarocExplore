@@ -12,6 +12,12 @@ class Destination extends Model
 
     protected $fillable = ['itinerary_id', 'name', 'lodging', 'places', 'activities', 'food'];
 
+    protected $casts = [
+        'places' => 'array',
+        'activities' => 'array',
+        'food' => 'array',
+    ];
+
     public function itinerary()
     {
         return $this->belongsTo(Itinerary::class);
