@@ -7,13 +7,17 @@ use App\Models\Itinerary;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
+use Ramsey\Uuid\Exception\NameException;
 
 class ItineraryController extends Controller
 {
-
-    /**
-     * @OA\Get
-     */
+    #[OA\Get(path: '/api/itineraries/', summary: 'Get itineraries with filtering', security: [['bearerAuth' => []]], tags: ['Itinerary'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Itineraries fetched',
+        content: new OA\JsonContent(ref: '#/components/schemas/Itinerary')
+    )]
 
     public function index(Request $request)
     {
@@ -22,13 +26,31 @@ class ItineraryController extends Controller
         $duration = $request->query('duration');
 
         $itineraries = Itinerary::with('destinations')
-            ->with('category:id,name')->filterByTitle($search)
+            ->with('category:id,name')
+            ->filterByTitle($search)
             ->filterByCategory($category)
             ->filterByDuration($duration)->get();
 
         return response()->json($itineraries);
     }
 
+    #[OA\Post(path: '/api/itineraries/', summary: 'Create a new itinerary', security: [['bearerAuth' => []]], tags: ['Itinerary'])]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\MediaType(
+            mediaType: 'multipart/form-data',
+            schema: new OA\Schema(ref: '#/components/schemas/Itinerary')
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Itinerary Created',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'Itinerary', ref: '#/components/schemas/Itinerary')
+            ]
+        )
+    )]
     public function create(Request $request)
     {
         $validated = $request->validate([
@@ -66,6 +88,20 @@ class ItineraryController extends Controller
         return response()->json($itinerary->load('destinations'), 201);
     }
 
+    #[OA\Get(path: '/api/itineraries/{id}', summary: 'Get itinerary by id', security: [['bearerAuth' => []]], tags: ['Itinerary'])]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'The ID of the itinerary',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Itinerary fetched',
+        content: new OA\JsonContent(ref: '#/components/schemas/Itinerary')
+    )]
+
     public function show($id)
     {
         $itinerary = Itinerary::with('destinations')->find($id);
@@ -76,6 +112,25 @@ class ItineraryController extends Controller
 
         return response()->json($itinerary);
     }
+
+    #[OA\Put(path: '/api/itineraries/{id}', summary: 'Update an itinerary', security: [['bearerAuth' => []]], tags: ['Itinerary'])]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        content: new OA\MediaType(
+            mediaType: 'multipart/form-data',
+            schema: new OA\Schema(
+                properties: [
+                    new OA\Property(property: 'title', type: 'string', example: 'Updated Trip Title'),
+                    new OA\Property(property: 'duration', type: 'integer', example: 5),
+                    new OA\Property(property: 'image', type: 'string'),
+                    new OA\Property(property: 'category_id', type: 'integer', example: 1),
+                ]
+            )
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully', content: new OA\JsonContent(ref: '#/components/schemas/Itinerary'))]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Not Found')]
 
     public function update(Request $request, $id)
     {
@@ -101,6 +156,11 @@ class ItineraryController extends Controller
         return response()->json($itinerary->load('destinations'));
     }
 
+    #[OA\Delete(path: '/api/itineraries/{id}', summary: 'Delete an itinerary', security: [['bearerAuth' => []]], tags: ['Itinerary'])]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 204, description: 'Deleted successfully')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+
     public function destroy($id)
     {
         $itinerary = Itinerary::find($id);
@@ -118,6 +178,9 @@ class ItineraryController extends Controller
         return response()->json(null, 204);
     }
 
+    #[OA\Get(path: '/api/wishlist', summary: 'Get user wishlist', security: [['bearerAuth' => []]], tags: ['Wishlist'])]
+    #[OA\Response(response: 200, description: 'List of wishlisted itineraries')]
+
     public function wishlist()
     {
         $wishlist = Wishlist::where('user_id', Auth::id())
@@ -126,6 +189,12 @@ class ItineraryController extends Controller
 
         return response()->json($wishlist);
     }
+
+    #[OA\Post(path: '/api/wishlist/{id}', summary: 'Add itinerary to wishlist', security: [['bearerAuth' => []]], tags: ['Wishlist'])]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 201, description: 'Added successfully')]
+    #[OA\Response(response: 409, description: 'Already in wishlist')]
+
 
     public function addToWishlist($id)
     {
@@ -150,6 +219,11 @@ class ItineraryController extends Controller
 
         return response()->json(['message' => 'Added to wishlist'], 201);
     }
+
+    #[OA\Delete(path: '/api/wishlist/{id}', summary: 'Remove from wishlist', security: [['bearerAuth' => []]], tags: ['Wishlist'])]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Removed successfully')]
+
 
     public function removeFromWishlist($id)
     {

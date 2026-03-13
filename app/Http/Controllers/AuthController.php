@@ -7,43 +7,37 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
-
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
-    /*
-     * @return void
-     */
-
-    /**
-     * @OA\Post(
-     *      path="auth/register",
-     *      tags={"Auth"},
-     *      summary="Register a new user",
-     *      @OA\RequestBody(
-     *          @OA\JsonContent(
-     *                          required={"name", "email", "password"},
-     *                          @OA\Proprety 
-     *                           )
-     *
-     *                               
-     *      ),
-     *      @OA\Response(
-     *          response=201,
-     *          description="User Registered",
-     *       ),
-     *     )
-     */
-
+    #[OA\Post(path: '/api/auth/register', summary: 'Register a new user', tags: ['Auth'])]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\MediaType(
+            mediaType: 'multipart/form-data',
+            schema: new OA\Schema(ref: '#/components/schemas/User')
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'User registered',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                new OA\Property(property: 'access_token', type: 'string'),
+                new OA\Property(property: 'token_type', type: 'string'),
+                new OA\Property(property: 'expires_in', type: 'integer')
+            ]
+        )
+    )]
     public function register(Request $request)
     {
-        $rules = [
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', Rules\Password::defaults()],
-        ];
-
-        $validated = $request->validate($rules);
+        ]);
 
         $user = User::create([
             'name' => $validated['name'],
@@ -52,10 +46,35 @@ class AuthController extends Controller
         ]);
 
         $token = auth()->login($user);
-
         return $this->respondWithToken($token);
     }
 
+    #[OA\Post(path: '/api/auth/login', summary: 'Login a user', tags: ['Auth'])]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\MediaType(
+            mediaType: 'multipart/form-data',
+            schema: new OA\Schema(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'secret123')
+                ]
+            )
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Login successful',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                new OA\Property(property: 'access_token', type: 'string'),
+                new OA\Property(property: 'token_type', type: 'string'),
+                new OA\Property(property: 'expires_in', type: 'integer')
+            ]
+        )
+    )]
     public function login()
     {
         $credentials = request(['email', 'password']);
@@ -67,51 +86,38 @@ class AuthController extends Controller
         return $this->respondWithToken($token);
     }
 
-    /**
-     * Get the authenticated User.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Get(path: '/api/auth/me', summary: 'Get authenticated user', security: [['bearerAuth' => []]], tags: ['Auth'])]
+    #[OA\Response(
+        response: 200,
+        description: 'User data',
+        content: new OA\JsonContent(ref: '#/components/schemas/User')
+    )]
     public function me()
     {
         return response()->json(auth()->user());
     }
 
-    /**
-     * Log the user out (Invalidate the token).
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Post(path: '/api/auth/logout', summary: 'Logout', security: [['bearerAuth' => []]], tags: ['Auth'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Logged out successfully',
+        content: new OA\JsonContent(
+            properties: [new OA\Property(property: 'message', type: 'string', example: 'Successfully logged out')]
+        )
+    )]
     public function logout()
     {
         auth()->logout();
-
         return response()->json(['message' => 'Successfully logged out']);
     }
 
-    /**
-     * Refresh a token.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function refresh()
-    {
-        return $this->respondWithToken(auth()->refresh());
-    }
-
-    /**
-     * Get the token array structure.
-     *
-     * @param  string $token
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     protected function respondWithToken($token)
     {
         return response()->json([
+            'user' => auth()->user(), // Include the user details here
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'expires_in' => auth()->factory()->getTTL() * 60,
         ]);
     }
 }

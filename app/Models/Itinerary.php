@@ -4,6 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(
+    schema: 'Itinerary',
+    properties: [
+        new OA\Property(property: 'id', type: 'integer'),
+        new OA\Property(property: 'title', type: 'string'),
+        new OA\Property(property: 'category_id', type: 'integer'),
+        new OA\Property(property: 'duration', type: 'integer'),
+        new OA\Property(property: 'image', type: 'string'),
+        new OA\Property(property: 'user_id', type: 'integer'),
+        new OA\Property(property: 'destinations', type: 'array', items: new OA\Items(ref: '#/components/schemas/Destination')),
+    ]
+)]
 
 class Itinerary extends Model
 {
@@ -34,20 +48,23 @@ class Itinerary extends Model
 
     ///////////////////////////////////////
 
-    public function scopeFilterBytitle($query, $title){
-        if($title){
+    public function scopeFilterBytitle($query, $title)
+    {
+        if ($title) {
             return $query->where('title', 'LIKE', "%{$title}%");
         }
     }
 
-    public function scopeFilterByCategory($query, $category){
-        if($category){
+    public function scopeFilterByCategory($query, $category)
+    {
+        if ($category) {
             return $query->whereRelation('category', 'name', $category);
         }
     }
 
-    public function scopeFilterByDuration($query, $duration){
-        if($duration){
+    public function scopeFilterByDuration($query, $duration)
+    {
+        if ($duration) {
             return $query->where('duration', $duration);
         }
     }
